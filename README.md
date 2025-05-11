@@ -21,3 +21,7 @@ A Streamlit-powered AI assistant designed to help medical billers and healthcare
 - **Model**: google/flan-t5-base
 - **Provider**: Hugging Face (running locally via transformers.pipeline)
 - **Type**:Text-to-text generation model (fine-tuned for instruction following)
+
+🧠 AI Model Role in this app :
+	•	The FLAN-T5 model generates answers based on the top 4 most relevant text chunks retrieved from the vector database (Chroma with sentence-transformers/all-MiniLM-L6-v2 embeddings).
+	•	It’s ideal for question answering, summarization, and instruction-based NLP tasks.
