@@ -1,5 +1,3 @@
-# Medical Blling Assistant
-
 # 🏥 Medical Billing Assistant
 
 A Streamlit-powered AI assistant designed to help medical billers and healthcare professionals quickly understand and answer questions about medical billing documents, codes, and procedures.
