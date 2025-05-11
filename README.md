@@ -53,3 +53,5 @@
    ```bash
    git clone https://github.com/gauravn17/medical-billing-assistant.git
    cd medical-billing-assistant
+
+Built with ❤️ by Gaurav Nair — empowering healthcare with intelligent, explainable AI.
