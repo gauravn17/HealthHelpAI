@@ -65,7 +65,7 @@ with st.sidebar:
     model_name = st.selectbox(
         "Model",
         ["google/flan-t5-base"],
-        index=0
+        index=0, key = "model_selector")
     )
     
     # About
