@@ -43,14 +43,14 @@ if "start_time" not in st.session_state:
 
 # --- Page Config ---
 st.set_page_config(
-    page_title="Medical Billing Assistant",
+    page_title="HealthHelp AI",
     page_icon="🩺",
     layout="wide"
 )
 
 # --- Sidebar ---
 with st.sidebar:
-    st.title("🩺 Medical Billing Assistant")
+    st.title("🩺 HealthHelp AI")
     st.markdown("---")
     
     # Statistics
@@ -66,7 +66,6 @@ with st.sidebar:
         "Model",
         ["google/flan-t5-base"],
         index=0, key = "model_selector")
-    )
     
     # About
     st.markdown("---")
