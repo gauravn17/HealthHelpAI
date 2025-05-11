@@ -133,12 +133,37 @@ with col2:
     
     # Document Status
     st.subheader("📄 Document Status")
-    pdf_path = "docs/sbc-completed-sample.pdf"
-    if os.path.exists(pdf_path):
-        st.success("✅ Benefits document loaded successfully")
-    else:
-        st.error("❌ PDF not found. Place it in the 'docs' folder.")
-        st.stop()
+    # === Set PDF path and validate ===
+pdf_path = "docs/sbc-completed-sample.pdf"
+if not os.path.exists(pdf_path):
+    st.error("❌ PDF not found. Place it in the 'docs' folder.")
+    st.stop()
 
-# Initialize QA Chain
+# === Initialize QA Chain early (cached by Streamlit) ===
 qa_chain = setup_rag_pipeline(pdf_path)
+
+# --- Sidebar ---
+with st.sidebar:
+    st.title("🩺 Medical Billing Assistant")
+    st.markdown("---")
+    
+    # Statistics
+    st.subheader("📊 Statistics")
+    st.metric("Total Queries", st.session_state.query_count)
+    session_duration = datetime.now() - st.session_state.start_time
+    st.metric("Session Duration", f"{session_duration.seconds // 60} minutes")
+    
+    # Settings
+    st.markdown("---")
+    st.subheader("⚙️ Settings")
+    model_name = st.selectbox("Model", ["google/flan-t5-base"], index=0)
+    
+    # About
+    st.markdown("---")
+    st.subheader("ℹ️ About")
+    st.markdown("""
+    This assistant helps you understand your medical benefits plan.
+    Ask questions about coverage, costs, and more.
+    """)
+
+# --- Main UI rendering continues...
