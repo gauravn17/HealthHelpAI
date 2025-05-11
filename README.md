@@ -19,3 +19,7 @@ A Streamlit-powered AI assistant designed to help medical billers and healthcare
 - **LLM**: OpenAI / Local model
 - **Document Parsing**: PyPDF
 - **Vector Store**: FAISS / ChromaDB
+
+- **Model**: google/flan-t5-base
+-**Provider**: Hugging Face (running locally via transformers.pipeline)
+-**Type**:Text-to-text generation model (fine-tuned for instruction following)
