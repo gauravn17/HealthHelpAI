@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter
@@ -11,7 +12,10 @@ from langchain.llms import HuggingFacePipeline
 # Load environment variables
 load_dotenv()
 
-# Function to load and split PDF into chunks
+# === Utility functions ===
+def bold(text):
+    return f"\033[1m{text}\033[0m"
+
 def load_and_split_docs(file_path):
     print("📄 Loading and splitting document...")
     loader = PyPDFLoader(file_path)
@@ -19,10 +23,12 @@ def load_and_split_docs(file_path):
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     chunks = splitter.split_documents(documents)
+
+    if not chunks:
+        raise ValueError("Parsed document returned no chunks.")
     return chunks
 
-# Function to create or load a vector store with embeddings
-def create_or_load_vectorstore(chunks, persist_directory="vectorstore"):
+def create_or_load_vectorstore(chunks, persist_directory):
     print("🧠 Creating or loading vectorstore with HuggingFace embeddings...")
     embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
 
@@ -33,7 +39,6 @@ def create_or_load_vectorstore(chunks, persist_directory="vectorstore"):
 
     return vectordb
 
-# Function to build the QA chain using a local HuggingFace model
 def build_qa_chain(vectordb):
     retriever = vectordb.as_retriever(search_type="similarity", k=4)
 
@@ -50,26 +55,39 @@ def build_qa_chain(vectordb):
     qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
     return qa_chain
 
-# === TOP LEVEL EXECUTION FOR STREAMLIT COMPATIBILITY ===
-
-file_path = "docs/sbc-completed-sample.pdf"
-if not os.path.exists(file_path):
-    raise FileNotFoundError(f"❌ Error: File not found at {file_path}. Place your PDF in the 'docs' folder.")
-
-chunks = load_and_split_docs(file_path)
-vectordb = create_or_load_vectorstore(chunks)
-qa_chain = build_qa_chain(vectordb)
-
-# === MAIN INTERFACE LOOP FOR CLI USAGE ===
-
+# === Entry Point ===
 if __name__ == "__main__":
-    print("\n🩺 Medical Billing Assistant Ready! Ask your questions below.\n(Type 'exit' to quit)\n")
+    if len(sys.argv) < 2:
+        print("❗ Usage: python backend.py <path_to_pdf>")
+        sys.exit(1)
 
-    while True:
-        question = input("❓ You: ")
-        if question.lower() in ["exit", "quit"]:
-            print("👋 Exiting assistant. Take care!")
-            break
+    file_path = sys.argv[1]
 
-        answer = qa_chain.invoke(question)
-        print("💡 Answer:", answer, "\n")
+    if not os.path.exists(file_path):
+        print(f"❌ Error: File not found at '{file_path}'")
+        sys.exit(1)
+
+    try:
+        chunks = load_and_split_docs(file_path)
+
+        # Use filename to persist separate vectorstore
+        base_name = os.path.splitext(os.path.basename(file_path))[0]
+        persist_directory = f"vectorstore/{base_name}"
+
+        vectordb = create_or_load_vectorstore(chunks, persist_directory)
+        qa_chain = build_qa_chain(vectordb)
+
+        print(bold("\n🩺 HealthHelp AI Ready! Ask your questions below."))
+        print("(Type 'exit' to quit)\n")
+
+        while True:
+            question = input("❓ You: ")
+            if question.lower().strip() in ["exit", "quit"]:
+                print("👋 Exiting assistant. Take care!")
+                break
+
+            response = qa_chain.invoke(question)
+            print(f"💡 Answer: {response['result']}\n")
+
+    except Exception as e:
+        print(f"❌ An error occurred: {e}")
