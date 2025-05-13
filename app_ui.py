@@ -14,6 +14,32 @@ from transformers import pipeline
 
 load_dotenv()
 
+# --- Custom CSS for branding ---
+st.markdown("""
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .stApp {
+            font-family: 'Segoe UI', sans-serif;
+        }
+        h1, h2, h3 {
+            color: #2CA6A4;
+        }
+        .block-container {
+            padding-top: 2rem;
+        }
+        .stButton>button {
+            background-color: #2CA6A4;
+            color: white;
+            font-weight: 600;
+        }
+        .stTextArea textarea {
+            background-color: #f0fdfd;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 # --- Load the PDF, Split, and Embed ---
 @st.cache_resource
 def setup_rag_pipeline(pdf_path, persist_directory="vectorstore"):
@@ -33,6 +59,15 @@ def setup_rag_pipeline(pdf_path, persist_directory="vectorstore"):
     qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=vectordb.as_retriever(search_type="similarity", k=4))
     return qa_chain
 
+# === Set PDF path and validate ===
+pdf_path = "docs/sbc-completed-sample.pdf"
+if not os.path.exists(pdf_path):
+    st.error("❌ PDF not found. Place it in the 'docs' folder.")
+    st.stop()
+
+# === Initialize QA Chain early (cached by Streamlit) ===
+qa_chain = setup_rag_pipeline(pdf_path)
+
 # --- Initialize Session State ---
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
@@ -50,49 +85,42 @@ st.set_page_config(
 
 # --- Sidebar ---
 with st.sidebar:
-    st.title("🩺 HealthHelp AI")
+    # Logo
+    st.image("HealthHelp AI-medical billing assistant logo.png", use_column_width=True)
+    st.markdown("<h2 style='text-align: center; color: #2CA6A4;'>HealthHelp AI</h2>", unsafe_allow_html=True)
+
     st.markdown("---")
-    
-    # Statistics
     st.subheader("📊 Statistics")
     st.metric("Total Queries", st.session_state.query_count)
     session_duration = datetime.now() - st.session_state.start_time
     st.metric("Session Duration", f"{session_duration.seconds // 60} minutes")
-    
-    # Settings
+
     st.markdown("---")
     st.subheader("⚙️ Settings")
-    model_name = st.selectbox(
-        "Model",
-        ["google/flan-t5-base"],
-        index=0, key = "model_selector")
-    
-    # About
+    model_name = st.selectbox("Model", ["google/flan-t5-base"], index=0, key="model_selector")
+
     st.markdown("---")
     st.subheader("ℹ️ About")
-    st.markdown("""
-    This assistant helps you understand your medical benefits plan.
-    Ask questions about coverage, costs, and more.
-    """)
+    st.markdown("This assistant helps you understand your medical benefits plan. Ask questions about coverage, costs, and more.")
 
 # --- Main Content ---
 col1, col2 = st.columns([2, 1])
 
 with col1:
     st.title("Chat Interface")
-    
+
     # Chat Form
     with st.form(key="chat_form", clear_on_submit=True):
         user_input = st.text_area("Ask a question:", height=100)
         submit = st.form_submit_button("Submit", use_container_width=True)
-    
+
     if submit and user_input:
         with st.spinner("Thinking..."):
             response = qa_chain.invoke(user_input)
             st.session_state.chat_history.append(("You", user_input))
             st.session_state.chat_history.append(("Assistant", response["result"]))
             st.session_state.query_count += 1
-    
+
     # Chat History
     st.markdown("---")
     for speaker, msg in st.session_state.chat_history:
@@ -111,16 +139,16 @@ with col1:
 
 with col2:
     st.title("Insights")
-    
+
     # Recent Activity
     st.subheader("📈 Recent Activity")
     if st.session_state.chat_history:
         recent_queries = pd.DataFrame([
-            {"Query": msg[1], "Type": msg[0]} 
+            {"Query": msg[1], "Type": msg[0]}
             for msg in st.session_state.chat_history[-6:]
         ])
         st.dataframe(recent_queries, use_container_width=True)
-    
+
     # Quick Tips
     st.subheader("💡 Quick Tips")
     st.markdown("""
@@ -129,40 +157,7 @@ with col2:
     - Get information about network providers
     - Understand your benefits and limitations
     """)
-    
+
     # Document Status
     st.subheader("📄 Document Status")
-    # === Set PDF path and validate ===
-pdf_path = "docs/sbc-completed-sample.pdf"
-if not os.path.exists(pdf_path):
-    st.error("❌ PDF not found. Place it in the 'docs' folder.")
-    st.stop()
-
-# === Initialize QA Chain early (cached by Streamlit) ===
-qa_chain = setup_rag_pipeline(pdf_path)
-
-# --- Sidebar ---
-with st.sidebar:
-    st.title("🩺 Medical Billing Assistant")
-    st.markdown("---")
-    
-    # Statistics
-    st.subheader("📊 Statistics")
-    st.metric("Total Queries", st.session_state.query_count)
-    session_duration = datetime.now() - st.session_state.start_time
-    st.metric("Session Duration", f"{session_duration.seconds // 60} minutes")
-    
-    # Settings
-    st.markdown("---")
-    st.subheader("⚙️ Settings")
-    model_name = st.selectbox("Model", ["google/flan-t5-base"], index=0)
-    
-    # About
-    st.markdown("---")
-    st.subheader("ℹ️ About")
-    st.markdown("""
-    This assistant helps you understand your medical benefits plan.
-    Ask questions about coverage, costs, and more.
-    """)
-
-# --- Main UI rendering continues...
+    st.success("✅ Benefits document loaded successfully")
