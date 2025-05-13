@@ -1,4 +1,5 @@
 # 🏥 HealthHelp AI: Medical Billing Assistant
+![HealthHelp AI-medical billing assistant logo](https://github.com/user-attachments/assets/14ca9619-9ece-4cab-a10f-affb5c0979ef)
 
 **HealthHelp AI** is an intelligent assistant designed to simplify the complexities of medical billing. Built with Streamlit, LangChain, and Hugging Face models, it enables users to upload billing PDFs and ask natural language questions — receiving accurate, context-aware responses in seconds.
 
