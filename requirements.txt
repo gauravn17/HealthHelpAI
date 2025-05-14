@@ -9,3 +9,4 @@ chromadb
 python-dotenv
 pypdf
 pandas
+clarifai_pat
